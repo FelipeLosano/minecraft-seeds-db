@@ -2,8 +2,13 @@ package felipelosano.minecraftseedsdb.Controllers;
 
 import felipelosano.minecraftseedsdb.Entities.User;
 import felipelosano.minecraftseedsdb.Services.UserService;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.URI;
 import java.util.List;
 
 
@@ -18,27 +23,42 @@ public class UserController {
   }
 
   @GetMapping
-  public List<User> getUser() {
-    return userService.findAll();
+  public ResponseEntity<List<User>> getUser() {
+    List<User> users = userService.findAll();
+    return ResponseEntity.status(HttpStatus.OK).body(users);
   }
 
   @GetMapping(path = "{id}")
-  public User getUserByID(@PathVariable Long id) {
-    return userService.findById(id);
+  public ResponseEntity<Object> getUserByID(@PathVariable Long id) {
+    User user = userService.findById(id);
+    if (user != null) {
+      return ResponseEntity.status(HttpStatus.OK).body(user);
+    }
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
   }
 
   @PostMapping
-  public String createUser() {
-    return "User created";
+  public ResponseEntity<Object> createUser(@RequestBody @Valid User user, UriComponentsBuilder uriBuilder) {
+    User savedUser = userService.saveUser(user);
+    URI uri = uriBuilder.path("users/{id}").buildAndExpand(user.getId()).toUri();
+    return ResponseEntity.created(uri).body(savedUser);
   }
 
   @PutMapping(path = "{id}")
-  public String updateUser(@PathVariable int id) {
-    return "User " + id + " updated";
+  public ResponseEntity<Object> updateUser(@PathVariable Long id, @RequestBody @Valid User newUser) {
+    User updatedUser = userService.updateUser(id, newUser);
+    if (updatedUser != null) {
+      return ResponseEntity.status(HttpStatus.OK).body(updatedUser);
+    }
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("User not found");
   }
 
   @DeleteMapping(path = "{id}")
-  public String deleteUser(@PathVariable int id) {
-    return "User" + id + "deleted";
+  public ResponseEntity<Object> deleteUser(@PathVariable Long id) {
+    boolean checkDeletion = userService.deleteUser(id);
+    if (checkDeletion) {
+      return ResponseEntity.status(HttpStatus.OK).body("User deleted successfully");
+    }
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("User not found");
   }
 }
