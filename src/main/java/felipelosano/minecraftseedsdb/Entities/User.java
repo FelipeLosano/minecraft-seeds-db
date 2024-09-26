@@ -1,7 +1,12 @@
 package felipelosano.minecraftseedsdb.Entities;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "users_tb")
@@ -22,6 +27,8 @@ public class User {
   @NotBlank(message = "Field password must be filled")
   @Size(min = 3, message = "Field password must have min of 3 characters")
   private String password;
+  @OneToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = true)
+  private List<Seed> seeds;
 
   public User(String firstName, String lastName, String email, String password) {
     this.firstName = firstName;

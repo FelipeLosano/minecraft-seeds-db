@@ -1,8 +1,14 @@
 package felipelosano.minecraftseedsdb.Entities;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 
-import java.util.Date;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 @Entity
 @Table(name = "seeds_tb")
@@ -11,42 +17,53 @@ public class Seed {
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Long id;
-  private String seed;
-  private String img;
+  @NotBlank(message = "Field seedNumber must be filled")
+  @Size(min = 3, message = "Field seedNumber must have min of 3 characters")
+  @Pattern(regexp = "^-?\\d*$")
+  private String seedNumber;
+  @NotBlank(message = "Field version must be filled")
+  @Size(min = 3, message = "Field version must have min of 3 characters")
   private String version;
-  private Date dateOfPost;
-  @ManyToOne
+  private String dateOfPost;
+  @OneToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = true)
+//  @NotNull(message = "Field images must be filled")
+  private List<Image> images;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "user_id")
+  @NotNull(message = "Field user must be filled")
   private User user;
 
-  public Seed() {
+  public Seed(String seedNumber, List<Image> images, String version, User user) {
+    this.seedNumber = seedNumber;
+    this.images = images;
+    this.version = version;
+    this.user = user;
+    DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
+    LocalDateTime now = LocalDateTime.now();
+    this.dateOfPost = dtf.format(now);
   }
 
-  public Seed(String seed, String img, String version, Date dateOfPost, User user) {
-    this.seed = seed;
-    this.img = img;
-    this.version = version;
-    this.dateOfPost = dateOfPost;
-    this.user = user;
+  public Seed() {
   }
 
   public Long getId() {
     return id;
   }
 
-  public String getSeed() {
-    return seed;
+  public String getSeedNumber() {
+    return seedNumber;
   }
 
-  public void setSeed(String seed) {
-    this.seed = seed;
+  public void setSeedNumber(String seedNumber) {
+    this.seedNumber = seedNumber;
   }
 
-  public String getImg() {
-    return img;
+  public List<Image> getImageList() {
+    return images;
   }
 
-  public void setImg(String img) {
-    this.img = img;
+  public void setImageList(List<Image> images) {
+    this.images = images;
   }
 
   public String getVersion() {
@@ -57,11 +74,11 @@ public class Seed {
     this.version = version;
   }
 
-  public Date getDateOfPost() {
+  public String getDateOfPost() {
     return dateOfPost;
   }
 
-  public void setDateOfPost(Date dateOfPost) {
+  public void setDateOfPost(String dateOfPost) {
     this.dateOfPost = dateOfPost;
   }
 
