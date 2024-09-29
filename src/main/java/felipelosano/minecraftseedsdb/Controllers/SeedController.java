@@ -52,17 +52,8 @@ public class SeedController {
   @PostMapping
   public ResponseEntity<Object> createSeed(@RequestBody @Valid Seed seed, UriComponentsBuilder uriBuilder) {
     Seed savedSeed = seedService.saveSeed(seed);
-    URI uri = uriBuilder.path("seeds/{id}").buildAndExpand(seed.getId()).toUri();
+    URI uri = uriBuilder.path("seeds/{id}").buildAndExpand(savedSeed.getId()).toUri();
     return ResponseEntity.created(uri).body(savedSeed);
-  }
-
-  @PutMapping(path = "{id}")
-  public ResponseEntity<Object> updateSeed(@PathVariable Long id, @RequestBody @Valid Seed newSeed) {
-    Seed updatedSeed = seedService.updateSeed(id, newSeed);
-    if (updatedSeed != null) {
-      return ResponseEntity.status(HttpStatus.OK).body(updatedSeed);
-    }
-    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Seed not found");
   }
 
   @DeleteMapping(path = "{id}")

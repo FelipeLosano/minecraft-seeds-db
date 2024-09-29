@@ -2,12 +2,13 @@ package felipelosano.minecraftseedsdb.Entities;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
-import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -24,13 +25,12 @@ public class Seed {
   @NotBlank(message = "Field version must be filled")
   @Size(min = 3, message = "Field version must have min of 3 characters")
   private String version;
-  private String dateOfPost;
-  @OneToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = true)
+  private String dateOfPost = ZonedDateTime.now(ZoneId.of("America/Sao_Paulo")).format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"));
+  @OneToMany(mappedBy = "seed", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = true)
 //  @NotNull(message = "Field images must be filled")
-  private List<Image> images;
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "user_id")
-  @NotNull(message = "Field user must be filled")
+  private List<Image> images = new ArrayList<>();
+  @ManyToOne
+  @JoinColumn(name = "user_id", referencedColumnName = "id")
   private User user;
 
   public Seed(String seedNumber, List<Image> images, String version, User user) {
@@ -38,9 +38,6 @@ public class Seed {
     this.images = images;
     this.version = version;
     this.user = user;
-    DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
-    LocalDateTime now = LocalDateTime.now();
-    this.dateOfPost = dtf.format(now);
   }
 
   public Seed() {
@@ -82,8 +79,8 @@ public class Seed {
     this.dateOfPost = dateOfPost;
   }
 
-  public User getUser() {
-    return user;
+  public Long getUserId() {
+    return user.getId();
   }
 
   public void setUser(User user) {

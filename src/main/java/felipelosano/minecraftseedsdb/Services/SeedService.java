@@ -8,59 +8,41 @@ import java.util.List;
 
 @Service
 public class SeedService {
-  SeedRepository repository;
+  SeedRepository seedRepository;
 
-  public SeedService(SeedRepository repository) {
-    this.repository = repository;
+  public SeedService(SeedRepository seedRepository) {
+    this.seedRepository = seedRepository;
   }
 
   public List<Seed> findAll() {
-    return repository.findAll();
+    return seedRepository.findAll();
   }
 
   public Seed findById(Long id) {
-    if (repository.existsById(id)) {
-      return repository.findById(id).get();
+    if (seedRepository.existsById(id)) {
+      return seedRepository.findById(id).get();
     }
     return null;
   }
 
   public Seed findBySeedNumber(String seedNumber) {
-    if (repository.findBySeedNumber(seedNumber) != null) {
-      return repository.findBySeedNumber(seedNumber);
-    }
-    return null;
+    return seedRepository.findBySeedNumber(seedNumber).orElse(null);
   }
 
   public List<Seed> findByVersion(String version) {
-    if (repository.findByVersion(version) != null) {
-      return repository.findByVersion(version);
-    }
-    return null;
+    return seedRepository.findByVersion(version).orElse(null);
   }
 
   public Seed saveSeed(Seed seed) {
-    Seed newSeed = new Seed(seed.getSeedNumber(), seed.getImageList(), seed.getVersion(), seed.getUser());
-    if (repository.findBySeedNumber(newSeed.getSeedNumber()) == null) {
-      return repository.save(newSeed);
-    }
-    return null;
-  }
-
-  public Seed updateSeed(Long id, Seed newSeed) {
-    Seed seed = findById(id);
-    if (seed != null) {
-      seed.setImageList(newSeed.getImageList());
-      seed.setDateOfPost(newSeed.getDateOfPost());
-
-      return repository.save(seed);
+    if (seedRepository.findBySeedNumber(seed.getSeedNumber()).isEmpty()) {
+      return seedRepository.save(seed);
     }
     return null;
   }
 
   public boolean deleteSeed(Long id) {
-    if (repository.existsById(id)) {
-      repository.deleteById(id);
+    if (seedRepository.existsById(id)) {
+      seedRepository.deleteById(id);
       return true;
     }
     return false;
