@@ -27,12 +27,13 @@ public class UserService {
   }
 
   public User saveUser(User user) {
+    User newUser = null;
     if (userRepository.findByEmail(user.getEmail()).isEmpty()) {
       String hashedPassword = passwordService.hashPassword(user.getPassword());
-      User newUser = new User(user.getFirstName(), user.getLastName(), user.getEmail(), hashedPassword);
-      return userRepository.save(newUser);
+      newUser = new User(user.getFirstName(), user.getLastName(), user.getEmail(), hashedPassword);
+      newUser = userRepository.save(newUser);
     }
-    return null;
+    return newUser;
   }
 
   public boolean login(String email, String password) {
@@ -48,11 +49,9 @@ public class UserService {
       user.setLastName(newUser.getLastName());
       user.setEmail(newUser.getEmail());
       user.setPassword(hashedPassword);
-
-
-      return userRepository.save(user);
+      user = userRepository.save(user);
     }
-    return null;
+    return user;
   }
 
   public boolean deleteUser(Long id) {
@@ -61,5 +60,14 @@ public class UserService {
       return true;
     }
     return false;
+  }
+
+  public User toggleEnabled(Long id) {
+    User user = userRepository.findById(id).orElse(null);
+    if (user != null) {
+      user.enable(!user.isEnabled());
+      user = userRepository.save(user);
+    }
+    return user;
   }
 }

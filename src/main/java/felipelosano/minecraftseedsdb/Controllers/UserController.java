@@ -53,6 +53,15 @@ public class UserController {
     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("User not found");
   }
 
+  @PutMapping(path = "{id}/enable")
+  public ResponseEntity<Object> toggleEnable(@PathVariable Long id) {
+    User user = userService.toggleEnabled(id);
+    if (user != null) {
+      return ResponseEntity.status(HttpStatus.OK).body(user);
+    }
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("User not found");
+  }
+
   @DeleteMapping(path = "{id}")
   public ResponseEntity<Object> deleteUser(@PathVariable Long id) {
     boolean checkDeletion = userService.deleteUser(id);
