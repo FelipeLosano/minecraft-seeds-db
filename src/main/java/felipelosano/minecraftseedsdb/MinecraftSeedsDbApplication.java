@@ -1,6 +1,7 @@
 package felipelosano.minecraftseedsdb;
 
 import felipelosano.minecraftseedsdb.Entities.User;
+import felipelosano.minecraftseedsdb.Security.Enums.UserRole;
 import felipelosano.minecraftseedsdb.Services.UserService;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -11,7 +12,9 @@ public class MinecraftSeedsDbApplication {
 
   public MinecraftSeedsDbApplication(UserService userService) {
     this.userService = userService;
-    userService.saveUser(new User("felipe", "losano", "felipelosano@outlook.com", "12345"));
+    User user = new User("felipe", "losano", "felipelosano@outlook.com", "12345");
+    user.setRole(UserRole.ADMIN);
+    userService.saveUser(user);
   }
 
 

@@ -2,6 +2,8 @@ package felipelosano.minecraftseedsdb.Services;
 
 import felipelosano.minecraftseedsdb.Entities.User;
 import felipelosano.minecraftseedsdb.Repositories.UserRepository;
+import felipelosano.minecraftseedsdb.Security.Enums.UserRole;
+import felipelosano.minecraftseedsdb.Security.Services.PasswordService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -28,17 +30,30 @@ public class UserService {
 
   public User saveUser(User user) {
     User newUser = null;
-    if (userRepository.findByEmail(user.getEmail()).isEmpty()) {
+    if (userRepository.findByEmail(user.getEmail()) == null) {
       String hashedPassword = passwordService.hashPassword(user.getPassword());
       newUser = new User(user.getFirstName(), user.getLastName(), user.getEmail(), hashedPassword);
+      if (user.getRole() != null) {
+        newUser.setRole(user.getRole());
+      }
       newUser = userRepository.save(newUser);
     }
+
+
     return newUser;
   }
 
-  public boolean login(String email, String password) {
-    User user = userRepository.findByEmail(email).orElse(null);
-    return user != null && passwordService.matches(password, user.getPassword());
+  public User changeUserRole(Long id) {
+    User user = userRepository.findById(id).orElse(null);
+    if (user != null) {
+      if (user.getRole() == UserRole.ADMIN) {
+        user.setRole(UserRole.USER);
+        return userRepository.save(user);
+      }
+      user.setRole(UserRole.ADMIN);
+      return userRepository.save(user);
+    }
+    return null;
   }
 
   public User updateUser(Long id, User newUser) {

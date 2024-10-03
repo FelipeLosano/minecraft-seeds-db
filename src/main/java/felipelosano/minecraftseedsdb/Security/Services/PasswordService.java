@@ -1,4 +1,4 @@
-package felipelosano.minecraftseedsdb.Services;
+package felipelosano.minecraftseedsdb.Security.Services;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
