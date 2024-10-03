@@ -53,7 +53,7 @@ public class SeedService {
   public SeedResponseDTO saveSeed(SeedRequestDTO seedDTO) {
     if (seedRepository.findBySeedNumber(seedDTO.seedNumber()).isEmpty()) {
       System.out.println(seedDTO.userID());
-      Seed seed = new Seed(seedDTO.seedNumber(), seedDTO.imageList(), seedDTO.version(), userRepository.findById(seedDTO.userID()).orElse(null));
+      Seed seed = new Seed(seedDTO.seedNumber(), seedDTO.imageList(), seedDTO.version(), userRepository.findById(seedDTO.userID()).orElse(null), seedDTO.biome());
       if (seed.getUser() != null) {
         return new SeedResponseDTO(seedRepository.save(seed));
       }

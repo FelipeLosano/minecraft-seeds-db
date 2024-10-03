@@ -25,7 +25,7 @@ public class ImageService {
 
   public ImageResponseDTO saveImage(MultipartFile file, SeedResponseDTO seedDTO) throws IOException {
     if (imageChecker.isImage(file)) {
-      Seed seed = new Seed(seedDTO.seedNumber(), seedDTO.imageList(), seedDTO.version(), userRepository.findById(seedDTO.userID()).orElse(null));
+      Seed seed = new Seed(seedDTO.seedNumber(), seedDTO.imageList(), seedDTO.version(), userRepository.findById(seedDTO.userID()).orElse(null), seedDTO.biome());
       Image image = new Image(file.getBytes(), seed);
       if (seed.getUser() != null && !file.isEmpty()) {
         return new ImageResponseDTO(imageRepository.save(image));

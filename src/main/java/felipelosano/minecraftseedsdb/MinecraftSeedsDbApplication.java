@@ -14,6 +14,7 @@ public class MinecraftSeedsDbApplication {
     this.userService = userService;
     UserRequestDTO user = new UserRequestDTO(new User("felipe", "losano", "felipelosano@outlook.com", "12345"));
     userService.saveUser(user);
+    userService.changeUserRole(Long.parseLong("1"));
   }
 
 

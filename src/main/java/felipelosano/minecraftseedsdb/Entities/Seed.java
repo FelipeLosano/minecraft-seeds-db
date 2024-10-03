@@ -1,7 +1,9 @@
 package felipelosano.minecraftseedsdb.Entities;
 
+import felipelosano.minecraftseedsdb.Utils.BiomesEnum;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
@@ -27,17 +29,23 @@ public class Seed {
   private String version;
   private String dateOfPost = ZonedDateTime.now(ZoneId.of("America/Sao_Paulo")).format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"));
   @OneToMany(mappedBy = "seed", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = true)
-//  @NotNull(message = "Field images must be filled")
+  @NotNull(message = "Field images must be filled")
   private List<Image> images = new ArrayList<>();
   @ManyToOne
   @JoinColumn(name = "user_id", referencedColumnName = "id")
   private User user;
+  @Enumerated(EnumType.STRING)
+  @NotNull(message = "field biome must be filled")
+  private BiomesEnum Biome;
+  @NotBlank(message = "field isVillage must be filled")
+  private Boolean isVillage;
 
-  public Seed(String seedNumber, List<Image> images, String version, User user) {
+  public Seed(String seedNumber, List<Image> images, String version, User user, BiomesEnum biome) {
     this.seedNumber = seedNumber;
     this.images = images;
     this.version = version;
     this.user = user;
+    this.Biome = biome;
   }
 
   public Seed() {
@@ -89,5 +97,13 @@ public class Seed {
 
   public void setUser(User user) {
     this.user = user;
+  }
+
+  public BiomesEnum getBiome() {
+    return Biome;
+  }
+
+  public void setBiome(BiomesEnum biome) {
+    Biome = biome;
   }
 }

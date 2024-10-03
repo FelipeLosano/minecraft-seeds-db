@@ -2,7 +2,6 @@ package felipelosano.minecraftseedsdb.Controllers;
 
 import felipelosano.minecraftseedsdb.DTO.Seed.SeedRequestDTO;
 import felipelosano.minecraftseedsdb.DTO.Seed.SeedResponseDTO;
-import felipelosano.minecraftseedsdb.Entities.Seed;
 import felipelosano.minecraftseedsdb.Services.SeedService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -54,8 +53,11 @@ public class SeedController {
   @PostMapping
   public ResponseEntity<Object> createSeed(@RequestBody @Valid SeedRequestDTO seed, UriComponentsBuilder uriBuilder) {
     SeedResponseDTO savedSeed = seedService.saveSeed(seed);
-    URI uri = uriBuilder.path("seeds/{id}").buildAndExpand(savedSeed.id()).toUri();
-    return ResponseEntity.created(uri).body(savedSeed);
+    if (savedSeed != null) {
+      URI uri = uriBuilder.path("seeds/{id}").buildAndExpand(savedSeed.id()).toUri();
+      return ResponseEntity.created(uri).body(savedSeed);
+    }
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Seed Already existis");
   }
 
   @DeleteMapping(path = "{id}")
