@@ -1,5 +1,7 @@
 package felipelosano.minecraftseedsdb.Controllers;
 
+import felipelosano.minecraftseedsdb.DTO.Seed.SeedRequestDTO;
+import felipelosano.minecraftseedsdb.DTO.Seed.SeedResponseDTO;
 import felipelosano.minecraftseedsdb.Entities.Seed;
 import felipelosano.minecraftseedsdb.Services.SeedService;
 import jakarta.validation.Valid;
@@ -23,14 +25,14 @@ public class SeedController {
   }
 
   @GetMapping
-  public ResponseEntity<List<Seed>> getSeeds() {
-    List<Seed> seeds = seedService.findAll();
+  public ResponseEntity<List<SeedResponseDTO>> getSeeds() {
+    List<SeedResponseDTO> seeds = seedService.findAll();
     return ResponseEntity.status(HttpStatus.OK).body(seeds);
   }
 
   @GetMapping(path = "{id}")
   public ResponseEntity<Object> getSeedByID(@PathVariable Long id) {
-    Seed seed = seedService.findById(id);
+    SeedResponseDTO seed = seedService.findById(id);
     if (seed != null) {
       return ResponseEntity.status(HttpStatus.OK).body(seed);
     }
@@ -38,21 +40,21 @@ public class SeedController {
   }
 
   @GetMapping(path = "{version}")
-  public ResponseEntity<List<Seed>> getSeedsByVersion(@PathVariable String version) {
-    List<Seed> seeds = seedService.findByVersion(version);
+  public ResponseEntity<List<SeedResponseDTO>> getSeedsByVersion(@PathVariable String version) {
+    List<SeedResponseDTO> seeds = seedService.findByVersion(version);
     return ResponseEntity.status(HttpStatus.OK).body(seeds);
   }
 
   @GetMapping(path = "{seedNumber}")
-  public ResponseEntity<Seed> getSeedsBySeedNumber(@PathVariable String seedNumber) {
-    Seed seed = seedService.findBySeedNumber(seedNumber);
+  public ResponseEntity<SeedResponseDTO> getSeedsBySeedNumber(@PathVariable String seedNumber) {
+    SeedResponseDTO seed = seedService.findBySeedNumber(seedNumber);
     return ResponseEntity.status(HttpStatus.OK).body(seed);
   }
 
   @PostMapping
-  public ResponseEntity<Object> createSeed(@RequestBody @Valid Seed seed, UriComponentsBuilder uriBuilder) {
-    Seed savedSeed = seedService.saveSeed(seed);
-    URI uri = uriBuilder.path("seeds/{id}").buildAndExpand(savedSeed.getId()).toUri();
+  public ResponseEntity<Object> createSeed(@RequestBody @Valid SeedRequestDTO seed, UriComponentsBuilder uriBuilder) {
+    SeedResponseDTO savedSeed = seedService.saveSeed(seed);
+    URI uri = uriBuilder.path("seeds/{id}").buildAndExpand(savedSeed.id()).toUri();
     return ResponseEntity.created(uri).body(savedSeed);
   }
 

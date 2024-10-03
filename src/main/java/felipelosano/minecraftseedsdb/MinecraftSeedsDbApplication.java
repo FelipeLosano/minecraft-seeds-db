@@ -1,7 +1,7 @@
 package felipelosano.minecraftseedsdb;
 
+import felipelosano.minecraftseedsdb.DTO.User.UserRequestDTO;
 import felipelosano.minecraftseedsdb.Entities.User;
-import felipelosano.minecraftseedsdb.Security.Enums.UserRole;
 import felipelosano.minecraftseedsdb.Services.UserService;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -12,8 +12,7 @@ public class MinecraftSeedsDbApplication {
 
   public MinecraftSeedsDbApplication(UserService userService) {
     this.userService = userService;
-    User user = new User("felipe", "losano", "felipelosano@outlook.com", "12345");
-    user.setRole(UserRole.ADMIN);
+    UserRequestDTO user = new UserRequestDTO(new User("felipe", "losano", "felipelosano@outlook.com", "12345"));
     userService.saveUser(user);
   }
 

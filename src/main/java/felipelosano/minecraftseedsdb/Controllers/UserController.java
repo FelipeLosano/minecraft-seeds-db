@@ -1,9 +1,10 @@
 package felipelosano.minecraftseedsdb.Controllers;
 
-import felipelosano.minecraftseedsdb.DTO.AuthDTO;
-import felipelosano.minecraftseedsdb.DTO.LoginResponseDTO;
+import felipelosano.minecraftseedsdb.DTO.Auth.AuthDTO;
+import felipelosano.minecraftseedsdb.DTO.Auth.LoginResponseDTO;
+import felipelosano.minecraftseedsdb.DTO.User.UserRequestDTO;
+import felipelosano.minecraftseedsdb.DTO.User.UserResponseDTO;
 import felipelosano.minecraftseedsdb.Entities.User;
-import felipelosano.minecraftseedsdb.Security.Enums.UserRole;
 import felipelosano.minecraftseedsdb.Security.Services.TokenService;
 import felipelosano.minecraftseedsdb.Services.UserService;
 import jakarta.validation.Valid;
@@ -37,14 +38,14 @@ public class UserController {
   }
 
   @GetMapping
-  public ResponseEntity<List<User>> getUser() {
-    List<User> users = userService.findAll();
+  public ResponseEntity<List<UserResponseDTO>> getUser() {
+    List<UserResponseDTO> users = userService.findAll();
     return ResponseEntity.status(HttpStatus.OK).body(users);
   }
 
   @GetMapping(path = "/{id}")
   public ResponseEntity<Object> getUserByID(@PathVariable Long id) {
-    User user = userService.findById(id);
+    UserResponseDTO user = userService.findById(id);
     if (user != null) {
       return ResponseEntity.status(HttpStatus.OK).body(user);
     }
@@ -60,25 +61,26 @@ public class UserController {
 
     User user = ((User) auth.getPrincipal());
     user.setLastLogin(ZonedDateTime.now(ZoneId.of("America/Sao_Paulo")).format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")));
+    UserRequestDTO userRequestDTO = new UserRequestDTO(user);
 
-    userService.updateUser(((User) auth.getPrincipal()).getId(), user);
+    userService.updateUser(((User) auth.getPrincipal()).getId(), userRequestDTO);
 
     return ResponseEntity.ok(new LoginResponseDTO(token));
   }
 
   @PostMapping(path = "/register")
-  public ResponseEntity<Object> createUser(@RequestBody @Valid User user, UriComponentsBuilder uriBuilder) {
-    User savedUser = userService.saveUser(user);
+  public ResponseEntity<Object> createUser(@RequestBody @Valid UserRequestDTO user, UriComponentsBuilder uriBuilder) {
+    UserResponseDTO savedUser = userService.saveUser(user);
     if (savedUser != null) {
-      URI uri = uriBuilder.path("users/{id}").buildAndExpand(savedUser.getId()).toUri();
+      URI uri = uriBuilder.path("users/{id}").buildAndExpand(savedUser.id()).toUri();
       return ResponseEntity.created(uri).body(savedUser);
     }
     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Email already registered");
   }
 
   @PutMapping(path = "/{id}")
-  public ResponseEntity<Object> updateUser(@PathVariable Long id, @RequestBody @Valid User newUser) {
-    User updatedUser = userService.updateUser(id, newUser);
+  public ResponseEntity<Object> updateUser(@PathVariable Long id, @RequestBody @Valid UserRequestDTO newUser) {
+    UserResponseDTO updatedUser = userService.updateUser(id, newUser);
     if (updatedUser != null) {
       return ResponseEntity.status(HttpStatus.OK).body(updatedUser);
     }
@@ -87,7 +89,7 @@ public class UserController {
 
   @PutMapping(path = "/{id}/enable")
   public ResponseEntity<Object> toggleEnable(@PathVariable Long id) {
-    User user = userService.toggleEnabled(id);
+    UserResponseDTO user = userService.toggleEnabled(id);
     if (user != null) {
       return ResponseEntity.status(HttpStatus.OK).body(user);
     }
@@ -96,7 +98,7 @@ public class UserController {
 
   @PutMapping(path = "/{id}/role")
   public ResponseEntity<Object> changeUserRole(@PathVariable Long id) {
-    User user = userService.changeUserRole(id);
+    UserResponseDTO user = userService.changeUserRole(id);
 
     if (user != null) {
       return ResponseEntity.status(HttpStatus.OK).body(user);

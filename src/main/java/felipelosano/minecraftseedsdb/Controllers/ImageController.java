@@ -1,7 +1,7 @@
 package felipelosano.minecraftseedsdb.Controllers;
 
-import felipelosano.minecraftseedsdb.Entities.Image;
-import felipelosano.minecraftseedsdb.Entities.Seed;
+import felipelosano.minecraftseedsdb.DTO.Image.ImageResponseDTO;
+import felipelosano.minecraftseedsdb.DTO.Seed.SeedResponseDTO;
 import felipelosano.minecraftseedsdb.Services.ImageService;
 import felipelosano.minecraftseedsdb.Services.SeedService;
 import org.springframework.http.HttpStatus;
@@ -28,26 +28,23 @@ public class ImageController {
   @GetMapping("{id}")
   public ResponseEntity<byte[]> getImage(@PathVariable Long id) throws IOException {
     byte[] imageData = imageService.getImage(id).getData();
-    return ResponseEntity.ok()
-            .header("Content-Type", "image/jpeg")
-            .body(imageData);
-    }
-
-    @PostMapping
-    public ResponseEntity<Object> createImage (@RequestParam("file") MultipartFile file, @RequestParam Long
-    seedId, UriComponentsBuilder uriBuilder) throws IOException {
-      Seed seed = seedService.findById(seedId);
-      Image savedImage = imageService.saveImage(file, seed);
-      URI uri = uriBuilder.path("images/{id}").buildAndExpand(savedImage.getId()).toUri();
-      return ResponseEntity.created(uri).body(savedImage);
-    }
-
-    @DeleteMapping(path = "{id}")
-    public ResponseEntity<Object> deleteImage (@PathVariable Long id){
-      boolean checkDeletion = imageService.deleteImage(id);
-      if (checkDeletion) {
-        return ResponseEntity.status(HttpStatus.OK).body("Image deleted successfully");
-      }
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Image not found");
-    }
+    return ResponseEntity.ok().header("Content-Type", "image/jpeg").body(imageData);
   }
+
+  @PostMapping
+  public ResponseEntity<Object> createImage(@RequestParam("file") MultipartFile file, @RequestParam Long seedId, UriComponentsBuilder uriBuilder) throws IOException {
+    SeedResponseDTO seed = seedService.findById(seedId);
+    ImageResponseDTO savedImage = imageService.saveImage(file, seed);
+    URI uri = uriBuilder.path("images/{id}").buildAndExpand(savedImage.id()).toUri();
+    return ResponseEntity.created(uri).body(savedImage);
+  }
+
+  @DeleteMapping(path = "{id}")
+  public ResponseEntity<Object> deleteImage(@PathVariable Long id) {
+    boolean checkDeletion = imageService.deleteImage(id);
+    if (checkDeletion) {
+      return ResponseEntity.status(HttpStatus.OK).body("Image deleted successfully");
+    }
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Image not found");
+  }
+}
