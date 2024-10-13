@@ -5,7 +5,7 @@ Project dedicated to an online Minecraft seeds database where users can post and
 ## MSDB Functions 
 
 **Post and Search for Seeds:**
--   You can post seeds with screenshots, tags (such as version, biome, and village), and the world seed number.
+-   You can make posts with world seed number, screenshots and tags (such as version, biome, and village).
 -   You can search for seeds using tags and usernames.
 -   Logged-in users can save their favorite seeds for easy access.
 
