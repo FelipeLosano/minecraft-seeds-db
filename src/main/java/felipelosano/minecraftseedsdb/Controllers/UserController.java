@@ -4,9 +4,11 @@ import felipelosano.minecraftseedsdb.DTO.Auth.AuthDTO;
 import felipelosano.minecraftseedsdb.DTO.Auth.LoginResponseDTO;
 import felipelosano.minecraftseedsdb.DTO.User.UserRequestDTO;
 import felipelosano.minecraftseedsdb.DTO.User.UserResponseDTO;
+import felipelosano.minecraftseedsdb.Entities.Seed;
 import felipelosano.minecraftseedsdb.Entities.User;
 import felipelosano.minecraftseedsdb.Security.Services.TokenService;
 import felipelosano.minecraftseedsdb.Services.UserService;
+import felipelosano.minecraftseedsdb.Utils.FavoriteData;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -52,6 +54,15 @@ public class UserController {
     return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
   }
 
+  @GetMapping(path = "/favorites/{id}")
+  public ResponseEntity<Object> getFavorites(@PathVariable Long id) {
+    List<Long> result = userService.getFavorites(id);
+    if (result != null) {
+      return ResponseEntity.status(HttpStatus.OK).body(result);
+    }
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid user");
+  }
+
   @PostMapping("/login")
   public ResponseEntity<LoginResponseDTO> login(@RequestBody @Valid AuthDTO data) {
     var usernamePassword = new UsernamePasswordAuthenticationToken(data.login(), data.password());
@@ -69,13 +80,22 @@ public class UserController {
   }
 
   @PostMapping(path = "/register")
-  public ResponseEntity<Object> createUser(@RequestBody @Valid UserRequestDTO user, UriComponentsBuilder uriBuilder) {
+  public ResponseEntity<Object> createUser(@Valid @RequestBody UserRequestDTO user, UriComponentsBuilder uriBuilder) {
     UserResponseDTO savedUser = userService.saveUser(user);
     if (savedUser != null) {
       URI uri = uriBuilder.path("users/{id}").buildAndExpand(savedUser.id()).toUri();
       return ResponseEntity.created(uri).body(savedUser);
     }
     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Email already registered");
+  }
+
+  @PostMapping(path = "/favorites")
+  public ResponseEntity<Object> favoriteSeeds(@Valid @RequestBody FavoriteData data) {
+    UserResponseDTO result = userService.favoriteSeeds(data.getUserId(), data.getSeedNumber());
+    if (result != null) {
+      return ResponseEntity.status(HttpStatus.OK).build();
+    }
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("User or Seed invalid");
   }
 
   @PutMapping(path = "/{id}")

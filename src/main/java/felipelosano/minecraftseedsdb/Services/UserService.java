@@ -2,7 +2,9 @@ package felipelosano.minecraftseedsdb.Services;
 
 import felipelosano.minecraftseedsdb.DTO.User.UserRequestDTO;
 import felipelosano.minecraftseedsdb.DTO.User.UserResponseDTO;
+import felipelosano.minecraftseedsdb.Entities.Seed;
 import felipelosano.minecraftseedsdb.Entities.User;
+import felipelosano.minecraftseedsdb.Repositories.SeedRepository;
 import felipelosano.minecraftseedsdb.Repositories.UserRepository;
 import felipelosano.minecraftseedsdb.Security.Enums.UserRole;
 import felipelosano.minecraftseedsdb.Security.Services.PasswordService;
@@ -14,12 +16,14 @@ import java.util.List;
 @Service
 public class UserService {
 
+  private final SeedRepository seedRepository;
   UserRepository userRepository;
   PasswordService passwordService;
 
-  public UserService(PasswordService passwordService, UserRepository userRepository) {
+  public UserService(PasswordService passwordService, UserRepository userRepository, SeedRepository seedRepository) {
     this.userRepository = userRepository;
     this.passwordService = passwordService;
+    this.seedRepository = seedRepository;
   }
 
 
@@ -93,6 +97,30 @@ public class UserService {
       user.enable(!user.isEnabled());
       user = userRepository.save(user);
       return new UserResponseDTO(user);
+    }
+    return null;
+  }
+
+  public UserResponseDTO favoriteSeeds(Long userId, String seedNumber) {
+    User user = userRepository.findById(userId).orElse(null);
+    Seed seed = seedRepository.findBySeedNumber(seedNumber).orElse(null);
+    if (user != null && seed != null) {
+      if (user.getFavoritesIds().contains(seed.getId())) {
+        return null;
+      }
+      List<Seed> newFavorites = user.getFavorites();
+      newFavorites.add(seed);
+      user.setFavorites(newFavorites);
+      user = userRepository.save(user);
+      return new UserResponseDTO(user);
+    }
+    return null;
+  }
+
+  public List<Long> getFavorites(Long userId) {
+    User user = userRepository.findById(userId).orElse(null);
+    if (user != null) {
+      return user.getFavoritesIds();
     }
     return null;
   }

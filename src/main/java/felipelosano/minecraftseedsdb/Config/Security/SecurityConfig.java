@@ -34,20 +34,20 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.POST, "/users/login").permitAll()
                     .requestMatchers(HttpMethod.POST, "/users/register").permitAll()
                     .requestMatchers("/").permitAll()
-                    .requestMatchers("/h2-console/**").permitAll()
 
                     .requestMatchers(HttpMethod.GET, "/users").hasRole("ADMIN")
                     .requestMatchers(HttpMethod.POST, "/users").hasRole("ADMIN")
                     .requestMatchers(HttpMethod.PUT, "/users").hasRole("ADMIN")
                     .requestMatchers(HttpMethod.DELETE, "/users").hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.POST, "/users/favorites").hasRole("USER")
 
                     .requestMatchers(HttpMethod.GET, "/seeds").permitAll()
-                    .requestMatchers(HttpMethod.POST, "/seeds").hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.POST, "/seeds").hasRole("USER")
                     .requestMatchers(HttpMethod.PUT, "/seeds").hasRole("ADMIN")
                     .requestMatchers(HttpMethod.DELETE, "/seeds").hasRole("ADMIN")
 
                     .requestMatchers(HttpMethod.GET, "/images").permitAll()
-                    .requestMatchers(HttpMethod.POST, "/images").hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.POST, "/images").hasRole("USER")
                     .requestMatchers(HttpMethod.PUT, "/images").hasRole("ADMIN")
                     .requestMatchers(HttpMethod.DELETE, "/images").hasRole("ADMIN")
                     .anyRequest().authenticated()

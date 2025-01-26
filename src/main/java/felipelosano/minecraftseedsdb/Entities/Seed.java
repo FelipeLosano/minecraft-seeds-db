@@ -12,6 +12,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "seeds_tb")
@@ -37,15 +38,17 @@ public class Seed {
   @Enumerated(EnumType.STRING)
   @NotNull(message = "field biome must be filled")
   private BiomesEnum Biome;
-  @NotBlank(message = "field isVillage must be filled")
   private Boolean isVillage;
+  @ManyToMany(mappedBy = "favoriteSeeds")
+  private List<User> favoritedUsers = new ArrayList<>();
 
-  public Seed(String seedNumber, List<Image> images, String version, User user, BiomesEnum biome) {
+  public Seed(String seedNumber, List<Image> images, String version, User user, BiomesEnum biome, Boolean isVillage) {
     this.seedNumber = seedNumber;
     this.images = images;
     this.version = version;
     this.user = user;
     this.Biome = biome;
+    this.isVillage = isVillage;
   }
 
   public Seed() {
@@ -105,5 +108,17 @@ public class Seed {
 
   public void setBiome(BiomesEnum biome) {
     Biome = biome;
+  }
+
+  public Boolean getVillage() {
+    return isVillage;
+  }
+
+  public void setVillage(Boolean village) {
+    isVillage = village;
+  }
+
+  public List<Long> getFavoritedUsers() {
+    return favoritedUsers.stream().map(User::getId).collect(Collectors.toList());
   }
 }

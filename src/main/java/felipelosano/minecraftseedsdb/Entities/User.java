@@ -1,6 +1,5 @@
 package felipelosano.minecraftseedsdb.Entities;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import felipelosano.minecraftseedsdb.Security.Enums.UserRole;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
@@ -41,6 +40,13 @@ public class User implements UserDetails {
   private String creationDate = ZonedDateTime.now(ZoneId.of("America/Sao_Paulo")).format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"));
   private String lastLogin;
   private Boolean enabled = true;
+
+  @ManyToMany
+  @JoinTable(
+          name = "seed_fav",
+          joinColumns = @JoinColumn(name = "user_id"),
+          inverseJoinColumns = @JoinColumn(name = "seed_id"))
+  private List<Seed> favoriteSeeds = new ArrayList<>();
 
   @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<Seed> seeds = new ArrayList<>();
@@ -118,6 +124,18 @@ public class User implements UserDetails {
 
   public List<Long> getSeedsIds() {
     return seeds.stream().map(Seed::getId).collect(Collectors.toList());
+  }
+
+  public List<Seed> getFavorites() {
+    return favoriteSeeds;
+  }
+
+  public List<Long> getFavoritesIds() {
+    return favoriteSeeds.stream().map(Seed::getId).collect(Collectors.toList());
+  }
+
+  public void setFavorites(List<Seed> favorites) {
+    this.favoriteSeeds = favorites;
   }
 
   public boolean isEnabled() {
