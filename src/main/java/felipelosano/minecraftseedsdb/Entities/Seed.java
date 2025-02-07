@@ -70,6 +70,10 @@ public class Seed {
     return images;
   }
 
+  public List<Long> getImageListIds() {
+    return images.stream().map(Image::getId).collect(Collectors.toList());
+  }
+
   public void setImageList(List<Image> images) {
     this.images = images;
   }

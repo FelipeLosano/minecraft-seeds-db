@@ -32,7 +32,7 @@ public class ImageController {
   }
 
   @PostMapping
-  public ResponseEntity<Object> createImage(@RequestParam("file") MultipartFile file, @RequestParam Long seedId, UriComponentsBuilder uriBuilder) throws IOException {
+  public ResponseEntity<Object> createImage(@RequestParam("file") MultipartFile file, @RequestParam("seedId") Long seedId, UriComponentsBuilder uriBuilder) throws IOException {
     SeedResponseDTO seed = seedService.findById(seedId);
     ImageResponseDTO savedImage = imageService.saveImage(file, seed);
     URI uri = uriBuilder.path("images/{id}").buildAndExpand(savedImage.id()).toUri();

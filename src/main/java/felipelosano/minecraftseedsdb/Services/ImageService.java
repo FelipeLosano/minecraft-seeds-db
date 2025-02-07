@@ -5,6 +5,7 @@ import felipelosano.minecraftseedsdb.DTO.Seed.SeedResponseDTO;
 import felipelosano.minecraftseedsdb.Entities.Image;
 import felipelosano.minecraftseedsdb.Entities.Seed;
 import felipelosano.minecraftseedsdb.Repositories.ImageRepository;
+import felipelosano.minecraftseedsdb.Repositories.SeedRepository;
 import felipelosano.minecraftseedsdb.Repositories.UserRepository;
 import felipelosano.minecraftseedsdb.Utils.ImageChecker;
 import org.springframework.stereotype.Service;
@@ -17,17 +18,20 @@ public class ImageService {
   private final UserRepository userRepository;
   ImageRepository imageRepository;
   ImageChecker imageChecker = new ImageChecker();
+  SeedRepository seedRepository;
 
-  public ImageService(ImageRepository imageRepository, UserRepository userRepository) {
+  public ImageService(ImageRepository imageRepository, UserRepository userRepository, SeedRepository seedRepository) {
     this.imageRepository = imageRepository;
     this.userRepository = userRepository;
+    this.seedRepository = seedRepository;
+
   }
 
   public ImageResponseDTO saveImage(MultipartFile file, SeedResponseDTO seedDTO) throws IOException {
     if (imageChecker.isImage(file)) {
-      Seed seed = new Seed(seedDTO.seedNumber(), seedDTO.imageList(), seedDTO.version(), userRepository.findById(seedDTO.userID()).orElse(null), seedDTO.biome(), seedDTO.isVillage());
+      Seed seed = seedRepository.findBySeedNumber(seedDTO.seedNumber()).orElse(null);
       Image image = new Image(file.getBytes(), seed);
-      if (seed.getUser() != null && !file.isEmpty()) {
+      if (seed != null && !file.isEmpty()) {
         return new ImageResponseDTO(imageRepository.save(image));
       }
     }

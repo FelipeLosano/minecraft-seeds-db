@@ -5,6 +5,7 @@ import felipelosano.minecraftseedsdb.DTO.Seed.SeedResponseDTO;
 import felipelosano.minecraftseedsdb.Entities.Seed;
 import felipelosano.minecraftseedsdb.Repositories.SeedRepository;
 import felipelosano.minecraftseedsdb.Repositories.UserRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -20,6 +21,7 @@ public class SeedService {
     this.userRepository = userRepository;
   }
 
+  @Transactional
   public List<SeedResponseDTO> findAll() {
     List<SeedResponseDTO> seeds = new ArrayList<>();
     for (Seed seed : seedRepository.findAll()) {
@@ -28,6 +30,7 @@ public class SeedService {
     return seeds;
   }
 
+  @Transactional
   public SeedResponseDTO findById(Long id) {
     if (seedRepository.existsById(id)) {
       return new SeedResponseDTO(seedRepository.findById(id).get());
