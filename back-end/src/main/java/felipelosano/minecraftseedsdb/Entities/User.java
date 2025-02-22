@@ -1,14 +1,29 @@
 package felipelosano.minecraftseedsdb.Entities;
 
+import felipelosano.minecraftseedsdb.Security.Enums.UserRole;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "users_tb")
-public class User {
+public class User implements UserDetails {
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Long id;
+  private UserRole role;
   @NotBlank(message = "Field firstName must be filled")
   @Size(min = 3, message = "Field firstName must have min of 3 characters")
   private String firstName;
@@ -22,19 +37,41 @@ public class User {
   @NotBlank(message = "Field password must be filled")
   @Size(min = 3, message = "Field password must have min of 3 characters")
   private String password;
+  private String creationDate = ZonedDateTime.now(ZoneId.of("America/Sao_Paulo")).format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"));
+  private String lastLogin;
+  private Boolean enabled = true;
+
+  @ManyToMany
+  @JoinTable(
+          name = "seed_fav",
+          joinColumns = @JoinColumn(name = "user_id"),
+          inverseJoinColumns = @JoinColumn(name = "seed_id"))
+  private List<Seed> favoriteSeeds = new ArrayList<>();
+
+  @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<Seed> seeds = new ArrayList<>();
+
+  public User() {
+  }
 
   public User(String firstName, String lastName, String email, String password) {
     this.firstName = firstName;
     this.lastName = lastName;
     this.email = email;
     this.password = password;
-  }
-
-  public User() {
+    this.role = UserRole.USER;
   }
 
   public Long getId() {
     return id;
+  }
+
+  public UserRole getRole() {
+    return role;
+  }
+
+  public void setRole(UserRole role) {
+    this.role = role;
   }
 
   public String getFirstName() {
@@ -67,5 +104,73 @@ public class User {
 
   public void setPassword(String password) {
     this.password = password;
+  }
+
+  public String getCreationDate() {
+    return creationDate;
+  }
+
+  public void setCreationDate(String dateOfPost) {
+    this.creationDate = dateOfPost;
+  }
+
+  public String getLastLogin() {
+    return lastLogin;
+  }
+
+  public void setLastLogin(String lastLogin) {
+    this.lastLogin = lastLogin;
+  }
+
+  public List<Long> getSeedsIds() {
+    return seeds.stream().map(Seed::getId).collect(Collectors.toList());
+  }
+
+  public List<Seed> getFavorites() {
+    return favoriteSeeds;
+  }
+
+  public List<Long> getFavoritesIds() {
+    return favoriteSeeds.stream().map(Seed::getId).collect(Collectors.toList());
+  }
+
+  public void setFavorites(List<Seed> favorites) {
+    this.favoriteSeeds = favorites;
+  }
+
+  public boolean isEnabled() {
+    return enabled;
+  }
+
+  public void enable(Boolean enable) {
+    enabled = enable;
+  }
+
+  @Override
+  public Collection<? extends GrantedAuthority> getAuthorities() {
+    if (this.getRole() == UserRole.ADMIN) {
+      return List.of(new SimpleGrantedAuthority("ROLE_ADMIN"), new SimpleGrantedAuthority("ROLE_USER"));
+    }
+    return List.of(new SimpleGrantedAuthority("ROLE_USER"));
+  }
+
+  @Override
+  public String getUsername() {
+    return this.getEmail();
+  }
+
+  @Override
+  public boolean isAccountNonExpired() {
+    return true;
+  }
+
+  @Override
+  public boolean isAccountNonLocked() {
+    return true;
+  }
+
+  @Override
+  public boolean isCredentialsNonExpired() {
+    return true;
   }
 }

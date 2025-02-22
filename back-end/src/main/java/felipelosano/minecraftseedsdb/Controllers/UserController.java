@@ -1,14 +1,26 @@
 package felipelosano.minecraftseedsdb.Controllers;
 
+import felipelosano.minecraftseedsdb.DTO.Auth.AuthDTO;
+import felipelosano.minecraftseedsdb.DTO.Auth.LoginResponseDTO;
+import felipelosano.minecraftseedsdb.DTO.User.UserRequestDTO;
+import felipelosano.minecraftseedsdb.DTO.User.UserResponseDTO;
+import felipelosano.minecraftseedsdb.Entities.Seed;
 import felipelosano.minecraftseedsdb.Entities.User;
+import felipelosano.minecraftseedsdb.Security.Services.TokenService;
 import felipelosano.minecraftseedsdb.Services.UserService;
+import felipelosano.minecraftseedsdb.Utils.FavoriteData;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 
@@ -18,42 +30,103 @@ public class UserController {
 
   private final UserService userService;
 
-  public UserController(UserService userService) {
+  private final AuthenticationManager authenticationManager;
+  private final TokenService tokenService;
+
+  public UserController(UserService userService, AuthenticationManager authenticationManager, TokenService tokenService) {
     this.userService = userService;
+    this.authenticationManager = authenticationManager;
+    this.tokenService = tokenService;
   }
 
   @GetMapping
-  public ResponseEntity<List<User>> getUser() {
-    List<User> users = userService.findAll();
+  public ResponseEntity<List<UserResponseDTO>> getUser() {
+    List<UserResponseDTO> users = userService.findAll();
     return ResponseEntity.status(HttpStatus.OK).body(users);
   }
 
-  @GetMapping(path = "{id}")
+  @GetMapping(path = "/{id}")
   public ResponseEntity<Object> getUserByID(@PathVariable Long id) {
-    User user = userService.findById(id);
+    UserResponseDTO user = userService.findById(id);
     if (user != null) {
       return ResponseEntity.status(HttpStatus.OK).body(user);
     }
     return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
   }
 
-  @PostMapping
-  public ResponseEntity<Object> createUser(@RequestBody @Valid User user, UriComponentsBuilder uriBuilder) {
-    User savedUser = userService.saveUser(user);
-    URI uri = uriBuilder.path("users/{id}").buildAndExpand(user.getId()).toUri();
-    return ResponseEntity.created(uri).body(savedUser);
+  @GetMapping(path = "/favorites/{id}")
+  public ResponseEntity<Object> getFavorites(@PathVariable Long id) {
+    List<Long> result = userService.getFavorites(id);
+    if (result != null) {
+      return ResponseEntity.status(HttpStatus.OK).body(result);
+    }
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid user");
   }
 
-  @PutMapping(path = "{id}")
-  public ResponseEntity<Object> updateUser(@PathVariable Long id, @RequestBody @Valid User newUser) {
-    User updatedUser = userService.updateUser(id, newUser);
+  @PostMapping("/login")
+  public ResponseEntity<LoginResponseDTO> login(@RequestBody @Valid AuthDTO data) {
+    var usernamePassword = new UsernamePasswordAuthenticationToken(data.login(), data.password());
+    var auth = this.authenticationManager.authenticate(usernamePassword);
+
+    var token = tokenService.generateToken((User) auth.getPrincipal());
+
+    User user = ((User) auth.getPrincipal());
+    user.setLastLogin(ZonedDateTime.now(ZoneId.of("America/Sao_Paulo")).format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")));
+    UserRequestDTO userRequestDTO = new UserRequestDTO(user);
+
+    userService.updateUser(((User) auth.getPrincipal()).getId(), userRequestDTO);
+
+    return ResponseEntity.ok(new LoginResponseDTO(token));
+  }
+
+  @PostMapping(path = "/register")
+  public ResponseEntity<Object> createUser(@Valid @RequestBody UserRequestDTO user, UriComponentsBuilder uriBuilder) {
+    UserResponseDTO savedUser = userService.saveUser(user);
+    if (savedUser != null) {
+      URI uri = uriBuilder.path("users/{id}").buildAndExpand(savedUser.id()).toUri();
+      return ResponseEntity.created(uri).body(savedUser);
+    }
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Email already registered");
+  }
+
+  @PostMapping(path = "/favorites")
+  public ResponseEntity<Object> favoriteSeeds(@Valid @RequestBody FavoriteData data) {
+    UserResponseDTO result = userService.favoriteSeeds(data.getUserId(), data.getSeedNumber());
+    if (result != null) {
+      return ResponseEntity.status(HttpStatus.OK).build();
+    }
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("User or Seed invalid");
+  }
+
+  @PutMapping(path = "/{id}")
+  public ResponseEntity<Object> updateUser(@PathVariable Long id, @RequestBody @Valid UserRequestDTO newUser) {
+    UserResponseDTO updatedUser = userService.updateUser(id, newUser);
     if (updatedUser != null) {
       return ResponseEntity.status(HttpStatus.OK).body(updatedUser);
     }
     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("User not found");
   }
 
-  @DeleteMapping(path = "{id}")
+  @PutMapping(path = "/{id}/enable")
+  public ResponseEntity<Object> toggleEnable(@PathVariable Long id) {
+    UserResponseDTO user = userService.toggleEnabled(id);
+    if (user != null) {
+      return ResponseEntity.status(HttpStatus.OK).body(user);
+    }
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("User not found");
+  }
+
+  @PutMapping(path = "/{id}/role")
+  public ResponseEntity<Object> changeUserRole(@PathVariable Long id) {
+    UserResponseDTO user = userService.changeUserRole(id);
+
+    if (user != null) {
+      return ResponseEntity.status(HttpStatus.OK).body(user);
+    }
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("User not found");
+  }
+
+  @DeleteMapping(path = "/{id}")
   public ResponseEntity<Object> deleteUser(@PathVariable Long id) {
     boolean checkDeletion = userService.deleteUser(id);
     if (checkDeletion) {
